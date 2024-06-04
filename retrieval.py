@@ -9,8 +9,8 @@ import os
 import numpy as np
 from typing import List
 
-INDEX_DIR = '../indexes'
-CHECKPOINT_DIR = '../Checkpoint'
+INDEX_DIR = '/path/to/index'
+CHECKPOINT_DIR = '/path/to/Checkpoint'
 
 # nlp = spacy.load("en_core_web_md")
 ssearcher = LuceneSearcher(os.path.join(INDEX_DIR, 'index-wikipedia-kilt-doc-20210421-f29307/'))
