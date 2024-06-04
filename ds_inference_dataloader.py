@@ -92,13 +92,3 @@ def build_dataloader_from_list(args, data_points: List[Dict], tokenizer):
          shuffle=False
     )
 
-if __name__ == '__main__':
-    with open('generated_1.txt', 'r') as f:
-        lines = f.readlines()
-        datas = [json.loads(line)['input'] for line in lines]
-    suceess = 0
-    for data in tqdm(datas):
-        r = build_solver_input(data)
-        if r:
-            suceess += 1
-    print(suceess)

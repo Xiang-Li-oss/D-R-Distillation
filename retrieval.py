@@ -70,16 +70,6 @@ def search(question, topk, sentence_embedding_model) -> List[str]:
     return '\n'.join(processed_paragraphs)
 
 
-if __name__ == "__main__":
-    with open('generated_1.txt', 'r') as f:
-        lines = f.readlines()
-    questions = [json.loads(line)['input'] for line in lines]
-    success = 0
-    for question in tqdm(questions):
 
-        paragraphs = search(question, 3, None)
-        if paragraphs:
-            success += 1
-    print(success)
         
 
