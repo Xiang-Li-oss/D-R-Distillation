@@ -26,25 +26,24 @@ def is_finish(sample):
         last_line = input.split('\n')[-1]
     return last_line.startswith('So the final')
 
-def build_solver_input(dp):
+def build_reponser_input(dp):
     current_traj = dp['input']
-    planer_output = current_traj.split('\n')[-1].strip(' \n')
-    if not planer_output.startswith('Subquestion'):
-        print('no subquestion found...' + planer_output)
-    if ':' not in planer_output:
-        question = planer_output
+    decomposer_output = current_traj.split('\n')[-1].strip(' \n')
+    if not decomposer_output.startswith('Subquestion'):
+        print('no subquestion found...' + decomposer_output)
+    if ':' not in decomposer_output:
+        question = decomposer_output
     else:
-        question = planer_output.split(':')[-1].strip()
+        question = decomposer_output.split(':')[-1].strip()
   
     paragraphs= search(question, 3, None)
 
-    solver_input = {
+    responser_input = {
         'input': paragraphs.strip(' \n') + '\n###\n' + question
     }
-    return solver_input
+    return responser_input
     
 def build_dataloader_from_list(args, data_points: List[Dict], tokenizer):
-
 
     def tokenize(example) -> dict:
         input_max_length = 512

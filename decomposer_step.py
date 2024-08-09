@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 import pytorch_lightning as pl
-from ds_inference_dataloader import build_dataloader_from_list, merge_list, is_finish, build_solver_input
+from ds_inference_dataloader import build_dataloader_from_list, merge_list, is_finish, build_responser_input
 from transformers import T5TokenizerFast, T5ForConditionalGeneration
 import json
 from tqdm import tqdm
@@ -23,7 +23,7 @@ parser.add_argument("--max_iters", type=int, default=3)
 parser.add_argument("--devices", type=int, nargs="+", default=3)
 parser.add_argument("--precision", type=int, default=32)
 parser.add_argument("--lr", type=float, default=3e-4)
-parser.add_argument("--role", type=str, default="planer")
+parser.add_argument("--role", type=str, default="decomposer")
 parser.add_argument("--strategy", type=str, default='auto')
 parser.add_argument("--role_path", type=str)
 parser.add_argument("--file_path", type=str)
@@ -37,28 +37,28 @@ dataset = args.dataset
 
 model_path = args.model
 
-def planner_step(model_path, datas):
+def decomposer_step(model_path, datas):
     if 'flan' in model_path:
         tokenizer = AutoTokenizer.from_pretrained(model_path, model_max_length=512)
-        planer_model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        decomposer_model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     else:
-        planer_model = T5ForConditionalGeneration.from_pretrained(model_path)
+        decomposer_model = T5ForConditionalGeneration.from_pretrained(model_path)
         
         tokenizer = T5TokenizerFast.from_pretrained(
             model_path, model_max_length=512)
-    planer_kwargs = {
+    decomposer_kwargs = {
             'args': args,
-            'model': planer_model,
+            'model': decomposer_model,
             'tokenizer': tokenizer,
             'map_location': lambda storage, loc: storage.cuda(9)
         }
-    planer = Model.load_from_checkpoint(args.role_path, **planer_kwargs)
-    planer_trainer = pl.Trainer(accelerator='gpu', devices=[9], 
+    decomposer = Model.load_from_checkpoint(args.role_path, **decomposer_kwargs)
+    decomposer_trainer = pl.Trainer(accelerator='gpu', devices=[9], 
                             strategy=args.strategy, precision=args.precision, enable_checkpointing=False)
-    planer_dataloader = build_dataloader_from_list(args, datas, tokenizer)
-    planer_outputs = planer_trainer.predict(planer, planer_dataloader)
-    planer_outputs = merge_list(planer_outputs)
-    return planer_outputs
+    decomposer_dataloader = build_dataloader_from_list(args, datas, tokenizer)
+    decomposer_outputs = decomposer_trainer.predict(decomposer, decomposer_dataloader)
+    decomposer_outputs = merge_list(decomposer_outputs)
+    return decomposer_outputs
 
 with open(args.file_path, 'r') as f:
      all_datapoints = json.load(f)
@@ -68,16 +68,16 @@ with open(args.file_path, 'r') as f:
 unfinished_datas = [dp for dp in all_datapoints if dp['finish'] == 'False']
 print('remaining: {}'.format(len(unfinished_datas)))
 if not len(unfinished_datas) == 0:
-    planer_outputs = planner_step(model_path, unfinished_datas)
+    decomposer_outputs = decomposer_step(model_path, unfinished_datas)
 
-    for unfinished_data, planer_output in zip(unfinished_datas, planer_outputs):
-        planer_output = planer_output.strip()
+    for unfinished_data, decomposer_output in zip(unfinished_datas, decomposer_outputs):
+        decomposer_output = decomposer_output.strip()
         idx = unfinished_data['idx']
-        all_datapoints[idx]['input'] = all_datapoints[idx]['input'] + '\n' + planer_output
-        if planer_output.startswith('So the final'):
+        all_datapoints[idx]['input'] = all_datapoints[idx]['input'] + '\n' + decomposer_output
+        if decomposer_output.startswith('So the final'):
             all_datapoints[idx]['finish'] = 'True'
-        elif not planer_output.startswith('Subquestion'):
-            print('error form' + planer_output)
+        elif not decomposer_output.startswith('Subquestion'):
+            print('error form' + decomposer_output)
             all_datapoints[idx]['finish'] = 'True'
 
     with open(args.file_path, 'w') as f:

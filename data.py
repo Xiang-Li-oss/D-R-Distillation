@@ -183,7 +183,7 @@ class DataModule(pl.LightningDataModule):
 
         
         result = {}
-        if self.role == 'planer':
+        if self.role == 'decomposer':
             result['input'] = 'Question: ' + sample['input']
         else:
             result['input'] = sample['input']

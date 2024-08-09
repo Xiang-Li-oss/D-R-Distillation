@@ -1,6 +1,11 @@
 import os 
 import json
 from evaluation_util import calculate_metrics
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--result_path", type=str, default='prediction.json')
+args = parser.parse_args()
+
 def extract_answer(traj):
     last_line = traj.strip(' \n').split('\n')[-1]
     if ':' in last_line:
@@ -9,7 +14,7 @@ def extract_answer(traj):
         answer = last_line
 
     return answer
-with open('hotpotqa-t5-base-prediction.json', 'r') as f:
+with open(args.result_path, 'r') as f:
     data_points = json.load(f)
 
 preds = []

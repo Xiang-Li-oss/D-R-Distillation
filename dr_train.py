@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", type=str, default="hotpotqa")
     parser.add_argument("--val_set", type=str, default="dev")
     parser.add_argument("--model", type=str, default="t5-large")
-    parser.add_argument("--role", type=str, default="planer")
+    parser.add_argument("--role", type=str, default="decomposer")
     parser.add_argument("--val_mode", type=str, default="max")
     parser.add_argument("--val_metric", type=str, default="f1")
     parser.add_argument("--batch_size", type=int, default=8)
@@ -44,14 +44,11 @@ if __name__ == "__main__":
     
     model_path = args.model
     
-    if 'flan' in model_path:
-        tokenizer = AutoTokenizer.from_pretrained(model_path, model_max_length=512)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
-    else:
-        model = T5ForConditionalGeneration.from_pretrained(model_path)
-        
-        tokenizer = T5TokenizerFast.from_pretrained(
-            model_path, model_max_length=512)
+   
+    model = T5ForConditionalGeneration.from_pretrained(model_path)
+    
+    tokenizer = T5TokenizerFast.from_pretrained(
+        model_path, model_max_length=512)
     
 
             
